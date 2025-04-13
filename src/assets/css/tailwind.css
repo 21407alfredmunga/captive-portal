@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .btn {
+    @apply px-4 py-2 font-semibold rounded transition duration-300 focus:outline-none focus:ring-2 focus:ring-opacity-50;
+  }
+  .btn-primary {
+    @apply bg-mpesa-green text-white hover:bg-mpesa-darkgreen focus:ring-mpesa-lightgreen;
+  }
+  .input {
+    @apply block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:border-mpesa-green focus:ring focus:ring-mpesa-lightgreen focus:ring-opacity-50;
+  }
+}
