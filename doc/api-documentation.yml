@@ -1,0 +1,175 @@
+openapi: 3.0.3
+info:
+  title: Captive Portal API with M-Pesa Integration
+  description: API documentation for WiFi captive portal with M-Pesa payment system
+  version: 1.0.0
+  contact:
+    name: Alfred Munga
+servers:
+  - url: http://localhost:3000
+    description: Development server
+  - url: https://captive-portal.example.com
+    description: Production server
+paths:
+  /api/mpesa/request:
+    post:
+      summary: Initiate M-Pesa payment request
+      description: Sends an M-Pesa STK push to the user's phone
+      tags:
+        - Payment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                phoneNumber:
+                  type: string
+                  example: "254712345678"
+                  description: M-Pesa registered phone number
+                package:
+                  type: string
+                  enum: [hourly, daily, weekly]
+                  example: "hourly"
+                  description: Access package type
+              required:
+                - phoneNumber
+                - package
+      responses:
+        "200":
+          description: Payment request initiated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "M-Pesa payment request sent"
+                  requestId:
+                    type: string
+                    example: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+        "400":
+          description: Invalid request parameters
+        "500":
+          description: Server error
+
+  /api/mpesa/status:
+    get:
+      summary: Check payment status
+      description: Checks the status of a pending M-Pesa payment
+      tags:
+        - Payment
+      parameters:
+        - in: query
+          name: requestId
+          required: true
+          schema:
+            type: string
+          description: Payment request ID from the initial request
+      responses:
+        "200":
+          description: Payment status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  status:
+                    type: string
+                    enum: [PENDING, COMPLETED, FAILED]
+                    example: "COMPLETED"
+                  message:
+                    type: string
+                    example: "Payment completed successfully"
+                  token:
+                    type: string
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                    description: Access token (only returned if status is COMPLETED)
+        "404":
+          description: Request ID not found
+        "500":
+          description: Server error
+
+  /api/access/status:
+    get:
+      summary: Check access status
+      description: Checks the validity and details of the current access token
+      tags:
+        - Access
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Access status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  valid:
+                    type: boolean
+                    example: true
+                  package:
+                    type: string
+                    example: "hourly"
+                  purchasedAt:
+                    type: string
+                    format: date-time
+                    example: "2025-04-14T10:30:00Z"
+                  expiresAt:
+                    type: string
+                    format: date-time
+                    example: "2025-04-14T11:30:00Z"
+        "401":
+          description: No token provided
+        "403":
+          description: Invalid or expired token
+
+  /api/access/disconnect:
+    post:
+      summary: Disconnect from internet
+      description: Voluntarily disconnects from internet access
+      tags:
+        - Access
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Successfully disconnected
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Successfully disconnected"
+        "401":
+          description: No token provided
+        "403":
+          description: Invalid token
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token obtained after successful payment
+
+tags:
+  - name: Payment
+    description: M-Pesa payment operations
+  - name: Access
+    description: Internet access management
